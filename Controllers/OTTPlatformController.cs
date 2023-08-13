@@ -45,12 +45,26 @@ namespace WebApplication1.Controllers
             {
                 return BadRequest();
             }
+            tvshow.ShowId = id;
             using (var context = new OttplatformContext())
             {
                 context.Entry(tvshow).State = EntityState.Modified;
-                await context.SaveChangesAsync();
+
+                try
+                {
+                    await context.SaveChangesAsync();
+                }catch (DbUpdateConcurrencyException)
+                {
+                    if(!context.Tvshows.Where(a=> a.ShowId == id).Any())
+                    {
+                        return NotFound();
+                    }else 
+                    {
+                        throw;
+                    }
+                }
             }
-            return Ok();
+            return NoContent();
         }
 
         [HttpPost]
@@ -63,10 +77,10 @@ namespace WebApplication1.Controllers
             using (var context = new OttplatformContext())
             {
 
-                context.Tvshows.AddAsync(tvshow);
+                await context.Tvshows.AddAsync(tvshow);
                 await context.SaveChangesAsync();
             }
-            return Ok();
+            return CreatedAtAction("GetTvShow", new { id = tvshow.ShowId }, tvshow);
         }
 
         [HttpDelete]

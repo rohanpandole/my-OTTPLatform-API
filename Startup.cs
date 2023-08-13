@@ -24,6 +24,29 @@ namespace OTTMyPlatform
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "rpn_engine", Version = "v1" });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description =  "Please enter valid token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "Bearer"
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
             });
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(opts =>
             {
@@ -42,7 +65,18 @@ namespace OTTMyPlatform
                     ClockSkew = TimeSpan.Zero,
                 };
             });
-            services.AddCors();
+
+            //var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+            services.AddCors(options =>
+            {
+                options.AddPolicy("_myAllowSpecificOrigins", p =>
+                {
+                    p.WithOrigins("http://localhost:3000","http://localhost:3000/login", "https://localhost:3000/login")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -55,8 +89,8 @@ namespace OTTMyPlatform
             }
 
             app.UseHttpsRedirection();
-            app.UseCors(option => option.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseRouting();
+            app.UseCors("_myAllowSpecificOrigins");
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
