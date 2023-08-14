@@ -12,5 +12,12 @@ namespace WebApplication1.Controllers
         {
             return new List<string> { "rohan", "Kishor", "Pandole"};
         }
+
+        [Authorize]
+        [HttpPost("postemployees")]
+        public IEnumerable<string> PostMy()
+        {
+            return new List<string> { "rohan", "Kishor", "Pandole" };
+        }
     }
 }

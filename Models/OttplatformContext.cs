@@ -76,9 +76,9 @@ public partial class OttplatformContext : DbContext
 
         modelBuilder.Entity<UserLoginDetail>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("UserLoginDetail");
+            entity.HasKey(e => e.Id).HasName("PK__UserLogi__3214EC07A9EA6005");
+
+            entity.ToTable("UserLoginDetail");
 
             entity.Property(e => e.Email)
                 .HasMaxLength(255)

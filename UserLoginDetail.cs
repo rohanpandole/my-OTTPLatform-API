@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace OTTMyPlatform.Models;
+namespace OTTMyPlatform;
 
 public partial class UserLoginDetail
 {

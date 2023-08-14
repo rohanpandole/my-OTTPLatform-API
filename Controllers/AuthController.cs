@@ -31,6 +31,31 @@ namespace WebApplication1.Controllers
             return Ok(a);
         }
 
+
+        [HttpPost("Register")]
+        public async Task<IActionResult> Register(UserLoginDetail myRegister)
+        {
+            if (myRegister == null)
+            {
+                return BadRequest();
+            }
+            using (var con = new OttplatformContext())
+            {
+
+                try
+                {
+                    await con.UserLoginDetails.AddAsync(myRegister);
+                    await con.SaveChangesAsync();
+                }
+                catch(Exception e)
+                {
+                    throw;
+                }
+                
+            }
+            return Ok();
+        }
+
         [HttpPost("VerifyUserGenerateTocken")]
         public async Task<IActionResult> VerifyUserGenerateTocken(UserLoginDetail loginUser)
         {
