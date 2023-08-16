@@ -17,6 +17,8 @@ public partial class OttplatformContext : DbContext
 
     public virtual DbSet<Episode> Episodes { get; set; }
 
+    public virtual DbSet<Role> Roles { get; set; }
+
     public virtual DbSet<Tvshow> Tvshows { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -33,29 +35,30 @@ public partial class OttplatformContext : DbContext
     {
         modelBuilder.Entity<Episode>(entity =>
         {
-            entity.HasKey(e => e.EpisodeId).HasName("PK__Episode__AC6676150E040EE1");
+            entity.HasKey(e => e.EpisodeId).HasName("PK__Episode__AC667615E62847B9");
 
             entity.ToTable("Episode");
 
-            entity.Property(e => e.EpisodeId)
-                .ValueGeneratedNever()
-                .HasColumnName("EpisodeID");
+            entity.Property(e => e.EpisodeId).HasColumnName("EpisodeID");
             entity.Property(e => e.ShowId).HasColumnName("ShowID");
+        });
 
-            entity.HasOne(d => d.Show).WithMany(p => p.Episodes)
-                .HasForeignKey(d => d.ShowId)
-                .HasConstraintName("FK__Episode__ShowID__286302EC");
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1AD1BE6D8F");
+
+            entity.Property(e => e.RoleType)
+                .HasMaxLength(255)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<Tvshow>(entity =>
         {
-            entity.HasKey(e => e.ShowId).HasName("PK__TVShow__6DE3E0D28F824CB7");
+            entity.HasKey(e => e.ShowId).HasName("PK__TVShow__6DE3E0D23525B02C");
 
             entity.ToTable("TVShow");
 
-            entity.Property(e => e.ShowId)
-                .ValueGeneratedNever()
-                .HasColumnName("ShowID");
+            entity.Property(e => e.ShowId).HasColumnName("ShowID");
             entity.Property(e => e.Description)
                 .HasMaxLength(255)
                 .IsUnicode(false);
@@ -76,7 +79,7 @@ public partial class OttplatformContext : DbContext
 
         modelBuilder.Entity<UserLoginDetail>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__UserLogi__3214EC07A9EA6005");
+            entity.HasKey(e => e.Id).HasName("PK__UserLogi__3214EC070AF0EC92");
 
             entity.ToTable("UserLoginDetail");
 
@@ -89,31 +92,21 @@ public partial class OttplatformContext : DbContext
             entity.Property(e => e.UserName)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.Role).WithMany(p => p.UserLoginDetails)
+                .HasForeignKey(d => d.RoleId)
+                .HasConstraintName("FK__UserLogin__RoleI__3E52440B");
         });
 
         modelBuilder.Entity<UserShowWatchList>(entity =>
         {
-            entity.HasKey(e => e.UserWatchListId).HasName("PK__UserShow__8FDB9D77410B8F61");
+            entity.HasKey(e => e.UserWatchListId).HasName("PK__UserShow__8FDB9D7757A1C290");
 
             entity.ToTable("UserShowWatchList");
 
-            entity.Property(e => e.UserWatchListId)
-                .ValueGeneratedNever()
-                .HasColumnName("UserWatchListID");
+            entity.Property(e => e.UserWatchListId).HasColumnName("UserWatchListID");
             entity.Property(e => e.EpisodeId).HasColumnName("EpisodeID");
             entity.Property(e => e.ShowId).HasColumnName("ShowID");
-
-            entity.HasOne(d => d.Episode).WithMany(p => p.UserShowWatchLists)
-                .HasForeignKey(d => d.EpisodeId)
-                .HasConstraintName("FK__UserShowW__Episo__33D4B598");
-
-            entity.HasOne(d => d.Show).WithMany(p => p.UserShowWatchLists)
-                .HasForeignKey(d => d.ShowId)
-                .HasConstraintName("FK__UserShowW__ShowI__31EC6D26");
-
-            entity.HasOne(d => d.User).WithMany(p => p.UserShowWatchLists)
-                .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__UserShowW__UserI__32E0915F");
         });
 
         OnModelCreatingPartial(modelBuilder);

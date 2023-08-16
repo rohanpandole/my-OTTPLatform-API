@@ -13,9 +13,5 @@ public partial class UserShowWatchList
 
     public int? EpisodeId { get; set; }
 
-    public virtual Episode? Episode { get; set; }
-
-    public virtual Tvshow? Show { get; set; }
-
-    public virtual User? User { get; set; }
+    public int? Watched { get; set; }
 }

@@ -31,7 +31,6 @@ namespace WebApplication1.Controllers
             return Ok(a);
         }
 
-
         [HttpPost("Register")]
         public async Task<IActionResult> Register(UserLoginDetail myRegister)
         {

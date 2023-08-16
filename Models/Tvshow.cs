@@ -10,8 +10,4 @@ public partial class Tvshow
     public string Title { get; set; } = null!;
 
     public string? Description { get; set; }
-
-    public virtual ICollection<Episode> Episodes { get; set; } = new List<Episode>();
-
-    public virtual ICollection<UserShowWatchList> UserShowWatchLists { get; set; } = new List<UserShowWatchList>();
 }
