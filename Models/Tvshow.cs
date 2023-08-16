@@ -10,4 +10,6 @@ public partial class Tvshow
     public string Title { get; set; } = null!;
 
     public string? Description { get; set; }
+
+    public string? imagePath { get; set; }
 }

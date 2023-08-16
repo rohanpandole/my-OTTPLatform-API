@@ -50,7 +50,7 @@ namespace WebApplication1.Controllers
                 {
                     throw;
                 }
-                
+
             }
             return Ok();
         }
@@ -71,7 +71,7 @@ namespace WebApplication1.Controllers
             }
             using (var conn = new OttplatformContext())
             {
-                userLoginDetail = await conn.UserLoginDetails.Where(a => 
+                userLoginDetail = await conn.UserLoginDetails.Where(a =>
                     a.UserName == jWTDetail.UserName &&
                     a.Password == jWTDetail.Password
                     ).FirstAsync();
@@ -84,7 +84,7 @@ namespace WebApplication1.Controllers
                 }
                 else
                 {
-                   jWTDetail.LoginMessage = "No Data Posted";
+                    jWTDetail.LoginMessage = "No Data Posted";
                     return BadRequest(jWTDetail);
                 }
             }

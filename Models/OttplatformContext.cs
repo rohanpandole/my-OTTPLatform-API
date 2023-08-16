@@ -92,10 +92,6 @@ public partial class OttplatformContext : DbContext
             entity.Property(e => e.UserName)
                 .HasMaxLength(255)
                 .IsUnicode(false);
-
-            entity.HasOne(d => d.Role).WithMany(p => p.UserLoginDetails)
-                .HasForeignKey(d => d.RoleId)
-                .HasConstraintName("FK__UserLogin__RoleI__3E52440B");
         });
 
         modelBuilder.Entity<UserShowWatchList>(entity =>

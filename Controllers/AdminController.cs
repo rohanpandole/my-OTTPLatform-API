@@ -17,19 +17,6 @@ namespace WebApplication1.Controllers
             _configuration = configuration;
         }
 
-        [AllowAnonymous]
-        [HttpGet("employees")]
-        public IEnumerable<string> Get()
-        {
-            return new List<string> { "rohan", "Kishor", "Pandole" };
-        }
-
-        [AllowAnonymous]
-        [HttpPost("postemployees")]
-        public IEnumerable<string> PostMy()
-        {
-            return new List<string> { "rohan", "Kishor", "Pandole" };
-        }
 
 
         [HttpGet("GetAllTvShow")]
@@ -161,7 +148,7 @@ namespace WebApplication1.Controllers
                 }
             }
         }
-        }
+    }
 
 }
 
