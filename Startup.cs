@@ -87,7 +87,7 @@ namespace OTTMyPlatform
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "rpn_engine v1"));
             }
-
+            app.UseStaticFiles();
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseCors("_myAllowSpecificOrigins");

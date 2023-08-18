@@ -8,23 +8,38 @@ using OTTMyPlatform.Models;
 
 namespace WebApplication1.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("User")]
     public class UserController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        public UserController(IConfiguration configuration)
+        private readonly IWebHostEnvironment _environment;
+        public UserController(IConfiguration configuration, IWebHostEnvironment environment)
         {
             _configuration = configuration;
+            _environment = environment;
 
         }
 
+        [AllowAnonymous]
         [HttpGet("GetAllTvShow")]
         public IEnumerable<Tvshow> GetAllTvShow()
         {
             using (var context = new OttplatformContext())
             {
                 var data = context.Tvshows.ToList();
+                if(data!=null && data.Count>0)
+                {
+                    foreach (var item in data)
+                    {
+                        item.tvShowImage = GetTVShowImage(item.tvShowImage);
+                    }
+                }
+                else
+                {
+                    return Enumerable.Empty<Tvshow>();
+                }
                 return data;
             }
         }
@@ -139,6 +154,38 @@ namespace WebApplication1.Controllers
                     throw e;
                 }
             }
+        }
+
+        [NonAction]
+        //private string GetImageFolderPath(string TvShowFolderName)
+        private string GetImageFolderPath()
+        {
+            // it will create folder path
+            //return this._environment.WebRootPath + "\\Uploads\\TVShowImages\\" + TvShowFolderName;
+
+            return this._environment.WebRootPath + "/Uploads/TVShowImages/";
+        }
+
+        [NonAction]
+        private string GetTVShowImage(string tvShowImage)
+        {
+            string imageUrl = string.Empty;
+            string hostUrl = "https://localhost:7005//";
+
+            string imaheFolderPath = GetImageFolderPath();
+            string imagePath = imaheFolderPath + tvShowImage;
+
+            if (!System.IO.File.Exists(imagePath))
+            {
+                imageUrl = hostUrl + "//Uploads//TVShowCommanImage/defaultImage.jpg";
+            }
+            else
+            {
+                imageUrl = hostUrl + "/Uploads/TVShowImages/" + tvShowImage;
+            }
+
+            return imageUrl;
+
         }
 
     }

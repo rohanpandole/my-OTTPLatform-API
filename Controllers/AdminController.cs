@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿//using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +13,11 @@ namespace WebApplication1.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        public AdminController(IConfiguration configuration)
+        private readonly IWebHostEnvironment _environment;
+        public AdminController(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
         {
             _configuration = configuration;
+            _environment = webHostEnvironment;
         }
 
 
@@ -46,7 +49,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpGet("GetTvShowByName")]
-        public async Task<ActionResult<Tvshow>> GetTvShowById(string tvShowName)
+        public async Task<ActionResult<Tvshow>> GetTvShowByName(string tvShowName)
         {
             Tvshow tvshow = new Tvshow();
             using (var context = new OttplatformContext())
@@ -135,11 +138,18 @@ namespace WebApplication1.Controllers
 
                     SqlCommand cmd1 = new SqlCommand("DELETE FROM UserShowWatchList WHERE ShowID= " + showId + ";", connection);
                     SqlCommand cmd2 = new SqlCommand("DELETE FROM Episode WHERE ShowID= " + showId + ";", connection);
+
+                    Tvshow tvshow = new Tvshow();
+                    var data = CreatedAtAction("GetTvShowById", new { id = showId }, tvshow);
+                    string imageFolderPath = GetImageFolderPath();
+                    string imagePath = imageFolderPath + data.Value;
+
                     SqlCommand cmd3 = new SqlCommand("DELETE FROM Tvshow WHERE ShowID= " + showId + ";", connection);
 
                     await cmd1.ExecuteNonQueryAsync();
                     await cmd2.ExecuteNonQueryAsync();
                     await cmd3.ExecuteNonQueryAsync();
+
                     return Ok();
                 }
                 catch (SqlException e)
@@ -148,6 +158,66 @@ namespace WebApplication1.Controllers
                 }
             }
         }
+
+        [AllowAnonymous]
+        [HttpPost("UploadImage")]
+        public async Task<ActionResult> UploadImage(List<IFormFile> files)
+        //public async Task<ActionResult> UploadImage()
+        {
+            bool result = false;
+            try
+            {
+                //var uploadeFile = Request.Form.Files;
+                var uploadeFile = files;
+
+                foreach (IFormFile source in uploadeFile) {
+
+                    string fileName = source.FileName;
+                    //string fileFolderPath = GetImageFolderPath(fileName);
+                    string fileFolderPath = GetImageFolderPath();
+
+                    if (!System.IO.Directory.Exists(fileFolderPath))
+                    {
+                        System.IO.Directory.CreateDirectory(fileFolderPath);
+                    }
+
+                    //string imagePath = fileFolderPath + "\\myImage.png";
+                    string imagePath = fileFolderPath + fileName;
+
+                    if (System.IO.File.Exists(imagePath))
+                    { 
+                        //if old image is there then it will delete it
+                        System.IO.File.Delete(imagePath);
+                    }
+
+                    using(FileStream stream = System.IO.File.Create(imagePath))
+                    { 
+                        // it will uploade actual binary data into dummy file
+                        await source.CopyToAsync(stream);
+                        result = true;
+
+                        // TODO: add code to save file name in tvshow table, later on that table column value will retrived from get TVshow api as image URL(with custome logic)
+                    }
+                }
+
+            }catch (Exception e) {
+                throw;
+            }
+
+            return Ok(result);
+
+        }
+
+        [NonAction]
+        //private string GetImageFolderPath(string TvShowFolderName)
+        private string GetImageFolderPath()
+        {
+            // it will create folder path
+            //return this._environment.WebRootPath + "\\Uploads\\TVShowImages\\" + TvShowFolderName;
+
+            return this._environment.WebRootPath + "/Uploads/TVShowImages/";
+        }
+
     }
 
 }
