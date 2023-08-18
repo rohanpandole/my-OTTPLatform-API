@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using OTTMyPlatform.Models;
 
 namespace WebApplication1.Controllers
@@ -22,7 +20,6 @@ namespace WebApplication1.Controllers
 
         }
 
-        [AllowAnonymous]
         [HttpGet("GetAllTvShow")]
         public IEnumerable<Tvshow> GetAllTvShow()
         {
@@ -62,7 +59,6 @@ namespace WebApplication1.Controllers
         }
 
 
-        [AllowAnonymous]
         [HttpGet("GetMyAllWatchedEpisods")]
         public List<UserShowWatchList> GetMyAllWatchedEpisods(int userId)
         {
@@ -73,7 +69,6 @@ namespace WebApplication1.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpGet("GetNextEpisodByTvShowId")]
         public async Task<ActionResult> GetNextEpisodByTvShowId(int showID, int userID)
         {
@@ -84,7 +79,6 @@ namespace WebApplication1.Controllers
             Episode episode = new Episode();
             using (var context = new OttplatformContext())
             {
-                //var getDataByID = await context.UserShowWatchLists.Where(x=> x.UserId == userID && x.ShowId == showID).FindAsync(new{ UserId=userID, ShowID=showID });
                 var getDataByID = await context.UserShowWatchLists.Where(x => x.UserId == userID && x.ShowId == showID).FirstAsync();
 
                 if (getDataByID != null)
@@ -94,7 +88,6 @@ namespace WebApplication1.Controllers
                         try
                         {
                             connection.ConnectionString = _configuration.GetConnectionString("DbConnection").ToString();
-                            //SqlCommand cmd = new SqlCommand("UPDATE [dbo].[TVShow] SET [Description] = '" + tvShowModel.Description + "' WHERE ShowID = " + showId + ";", connection);
                             SqlCommand cmd = new SqlCommand("select top 1 usl.EpisodeID+1 as nextEpisode  from UserShowWatchList usl join Episode e on e.EpisodeID = usl.EpisodeID " +
                                 "where usl.UserId = " + userID + " and usl.ShowID = " + showID + " order by usl.EpisodeID desc;", connection);
                             connection.Open();
@@ -111,8 +104,7 @@ namespace WebApplication1.Controllers
                             var episodeResultData = await context.Episodes.Where(x => x.EpisodeId == nextEpisodeResult && x.ShowId == showID).AnyAsync();
 
                             if (episodeResultData)
-                            {
-                                //var episodeDetails = await context.UserShowWatchLists.Where(x => x.EpisodeId == nextEpisodeResult).FirstAsync();
+                            {                              
                                 var episodeDetails = await context.Episodes.FindAsync(nextEpisodeResult);
                                 return Ok(episodeDetails);
                             }
@@ -131,7 +123,6 @@ namespace WebApplication1.Controllers
             return Ok();
         }
 
-        [AllowAnonymous]
         [HttpPut("UpdateMarkCurrentEpisodCompleted")]
         public async Task<ActionResult<Tvshow>> UpdateTvShowById(int showID, int episodID, int userID)
         {
@@ -157,11 +148,8 @@ namespace WebApplication1.Controllers
         }
 
         [NonAction]
-        //private string GetImageFolderPath(string TvShowFolderName)
         private string GetImageFolderPath()
         {
-            // it will create folder path
-            //return this._environment.WebRootPath + "\\Uploads\\TVShowImages\\" + TvShowFolderName;
 
             return this._environment.WebRootPath + "/Uploads/TVShowImages/";
         }

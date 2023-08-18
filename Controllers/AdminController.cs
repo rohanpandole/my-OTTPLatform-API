@@ -1,5 +1,4 @@
-﻿//using Azure.Core;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -43,6 +42,7 @@ namespace WebApplication1.Controllers
                     tvshow.Description = getDataByID.Description;
                     tvshow.ShowId = getDataByID.ShowId;
                     tvshow.Title = getDataByID.Title;
+                    tvshow.tvShowImage = getDataByID.tvShowImage;
                 }
             }
             return tvshow;
@@ -72,7 +72,6 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    //SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DbConnection").ToString());
                     connection.ConnectionString = _configuration.GetConnectionString("DbConnection").ToString();
                     SqlCommand cmd = new SqlCommand("UPDATE [dbo].[TVShow] SET [Title] = '"+tvShowModel.Title+"',[Description] = '" + tvShowModel.Description + "' WHERE ShowID = " + showId + ";", connection);
                     connection.Open();
@@ -132,17 +131,26 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    //SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DbConnection").ToString());
                     connection.ConnectionString = _configuration.GetConnectionString("DbConnection").ToString();
                     connection.Open();
 
                     SqlCommand cmd1 = new SqlCommand("DELETE FROM UserShowWatchList WHERE ShowID= " + showId + ";", connection);
                     SqlCommand cmd2 = new SqlCommand("DELETE FROM Episode WHERE ShowID= " + showId + ";", connection);
 
-                    Tvshow tvshow = new Tvshow();
-                    var data = CreatedAtAction("GetTvShowById", new { id = showId }, tvshow);
+                    string imagePath = "";
                     string imageFolderPath = GetImageFolderPath();
-                    string imagePath = imageFolderPath + data.Value;
+
+                    using (var context = new OttplatformContext())
+                    {
+                        var getData = await context.Tvshows.FindAsync(showId);
+                        imagePath = imageFolderPath + getData.tvShowImage;
+                        
+                        if (System.IO.File.Exists(imagePath))
+                        {
+                            //if old image is there then it will delete it
+                            System.IO.File.Delete(imagePath);
+                        }
+                    }
 
                     SqlCommand cmd3 = new SqlCommand("DELETE FROM Tvshow WHERE ShowID= " + showId + ";", connection);
 
@@ -150,7 +158,7 @@ namespace WebApplication1.Controllers
                     await cmd2.ExecuteNonQueryAsync();
                     await cmd3.ExecuteNonQueryAsync();
 
-                    return Ok();
+                    return Ok("Record deleted successfuly");
                 }
                 catch (SqlException e)
                 {
@@ -181,7 +189,6 @@ namespace WebApplication1.Controllers
                         System.IO.Directory.CreateDirectory(fileFolderPath);
                     }
 
-                    //string imagePath = fileFolderPath + "\\myImage.png";
                     string imagePath = fileFolderPath + fileName;
 
                     if (System.IO.File.Exists(imagePath))
@@ -209,11 +216,8 @@ namespace WebApplication1.Controllers
         }
 
         [NonAction]
-        //private string GetImageFolderPath(string TvShowFolderName)
         private string GetImageFolderPath()
         {
-            // it will create folder path
-            //return this._environment.WebRootPath + "\\Uploads\\TVShowImages\\" + TvShowFolderName;
 
             return this._environment.WebRootPath + "/Uploads/TVShowImages/";
         }
