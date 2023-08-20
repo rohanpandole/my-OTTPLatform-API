@@ -53,6 +53,7 @@ namespace WebApplication1.Controllers
                     tvshow.Description = getDataByID.Description;
                     tvshow.ShowId = getDataByID.ShowId;
                     tvshow.Title = getDataByID.Title;
+                    tvshow.tvShowImage = GetTVShowImage(getDataByID.tvShowImage);
                 }
             }
             return tvshow;

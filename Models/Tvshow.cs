@@ -11,6 +11,6 @@ public partial class Tvshow
 
     public string? Description { get; set; }
 
-    public string? imagePath { get; set; }
+    public string? IsActive { get; set; }
     public string? tvShowImage { get; set; }
 }
