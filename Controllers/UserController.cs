@@ -90,12 +90,21 @@ namespace WebApplication1.Controllers
 
 
         [HttpGet("GetMyAllWatchedEpisods")]
-        public List<UserShowWatchList> GetMyAllWatchedEpisods(int userId)
+        public List<Tvshow> GetMyAllWatchedEpisods(int userId)
         {
+            List<Tvshow> Tvshows = new List<Tvshow>();
+            Tvshow Tvshow = new Tvshow();
             using (var context = new OttplatformContext())
             {
                 var watchList = context.UserShowWatchLists.Where(x => x.UserId == userId).ToList();
-                return watchList;
+                foreach(var data in watchList)
+                {
+                    var showData = context.Tvshows.Where(x => x.ShowId ==  data.ShowId).SingleOrDefault();
+                    showData.tvShowImage = GetTVShowImage(showData.tvShowImage);
+                    Tvshows.Add(showData);
+                }
+                
+                return Tvshows;
             }
         }
 
