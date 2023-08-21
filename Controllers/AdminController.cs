@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OTTMyPlatform.Models;
@@ -101,8 +100,8 @@ namespace WebApplication1.Controllers
             }
             Tvshow tvshow = new Tvshow()
             {
-                Description = uploadeFile["Title"],
-                Title = uploadeFile["Description"],
+                Description = uploadeFile["Description"],
+                Title = uploadeFile["Title"],
                 IsActive = "yes",
                 tvShowImage = uploadeFile.Files[0].FileName
             };
@@ -234,8 +233,6 @@ namespace WebApplication1.Controllers
                     // it will uploade actual binary data into dummy file
                     source.CopyTo(stream);
                     return true;
-
-                    // TODO: add code to save file name in tvshow table, later on that table column value will retrived from get TVshow api as image URL(with custome logic)
                 }
             }
             return false;
