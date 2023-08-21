@@ -59,6 +59,35 @@ namespace WebApplication1.Controllers
             return tvshow;
         }
 
+        [HttpPost("MarkTvShowById")]
+        public async Task<ActionResult> MarkTvShowById(Watched watched)
+        {
+            Tvshow tvshow = new Tvshow();
+            UserShowWatchList watchlist = new UserShowWatchList();
+            using (var context = new OttplatformContext())
+            {
+                var getDataByID = await context.Episodes.Where(x => x.ShowId == watched.showId).FirstAsync();
+                if (getDataByID != null)
+                {
+                    watchlist.ShowId = getDataByID.ShowId;
+                    watchlist.EpisodeId = getDataByID.EpisodeId;
+                    watchlist.UserId = watched.UserID;
+                    watchlist.Watched = 1;
+
+                }
+                try
+                {
+                    await context.UserShowWatchLists.AddAsync(watchlist);
+                    await context.SaveChangesAsync();
+                }
+                catch (Exception e)
+                {
+                    throw;
+                }
+            }
+            return Ok();
+        }
+
 
         [HttpGet("GetMyAllWatchedEpisods")]
         public List<UserShowWatchList> GetMyAllWatchedEpisods(int userId)

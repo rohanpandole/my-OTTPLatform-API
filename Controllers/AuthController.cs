@@ -80,6 +80,7 @@ namespace WebApplication1.Controllers
                 {
                     jWTDetail.AccessToken = GetTocken(jWTDetail);
                     jWTDetail.LoginMessage = "Login Success";
+                    jWTDetail.UserID = userLoginDetail.Id;
                     return Ok(jWTDetail);
                 }
                 else
