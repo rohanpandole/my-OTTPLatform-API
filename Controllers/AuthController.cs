@@ -1,12 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using OTTMyPlatform.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using WebApplication1.Models;
-
+using OTTMyPlatform.Models.Responce;
+using OTTMyPlatform.Repository.Interface;
 namespace WebApplication1.Controllers
 {
     [Route("[controller]")]
@@ -14,104 +9,70 @@ namespace WebApplication1.Controllers
     public class AuthController: Controller
     {
         private readonly IConfiguration _configuration;
-        public AuthController(IConfiguration configuration)
+        private readonly IAuthRepository _authRepository;
+        public AuthController(IConfiguration configuration, IAuthRepository authRepository)
         {
             _configuration = configuration;
+            _authRepository = authRepository;
         }
 
         [HttpGet("GetAllUser")]
-        public async Task<IActionResult> GetAllUser()
+        public async Task<ActionResult<UserLoginResponce>> GetAllUser()
         {
-            List<UserLoginDetail> a = new List<UserLoginDetail>();
-            using (var conn = new OttplatformContext())
-            {
-                a = await conn.UserLoginDetails.ToListAsync();
-            }
-            return Ok(a);
+            UserLoginResponce responce = new UserLoginResponce();
+            responce.UserDetail = await _authRepository.GetAllUser();
+            responce.StatusCode = 200;
+            responce.StatusMessage = "Got All User Details";
+            return Ok(responce);
         }
 
         [HttpPost("Register")]
-        public async Task<IActionResult> Register(UserLoginDetail myRegister)
+        public async Task<ActionResult<UserLoginResponce>> Register(UserLoginDetail myRegister)
         {
+            UserLoginResponce responce = new UserLoginResponce();
             if (myRegister == null)
             {
-                return BadRequest();
+                responce.StatusCode = 500;
+                responce.StatusMessage = "Please Enter New Details Again";
+                return BadRequest(responce);
             }
-            using (var con = new OttplatformContext())
+
+            responce = await _authRepository.Register(myRegister);
+
+            if (responce.StatusCode == 200)
             {
-
-                try
-                {
-                    await con.UserLoginDetails.AddAsync(myRegister);
-                    await con.SaveChangesAsync();
-                }
-                catch(Exception e)
-                {
-                    throw;
-                }
-
+                return Ok(responce);
             }
-            return Ok();
+            else{
+                return BadRequest(responce);
+            }
         }
 
-        [HttpPost("VerifyUserGenerateTocken")]
-        public async Task<IActionResult> VerifyUserGenerateTocken(UserLoginDetail loginUser)
+        [HttpPost("VerifyUserGenerateToken")]
+        public async Task<ActionResult<UserLoginResponce>> VerifyUserGenerateTocken(UserLoginDetail loginUser)
         {
-            UserLoginDetail userLoginDetail = new UserLoginDetail();
-            JWTDetail jWTDetail = new JWTDetail()
+            UserLoginResponce responce = new UserLoginResponce();
             {
-                UserName=  loginUser.UserName,
-                Password =  loginUser.Password
+                responce.UserJWTDetail.UserName = loginUser.UserName;
+                responce.UserJWTDetail.Password = loginUser.Password;
             };
-            if(jWTDetail == null)
+            if(responce.UserJWTDetail == null)
             {
-                jWTDetail.LoginMessage = "Empty credential enterd";
-                return (IActionResult)jWTDetail;
+                responce.StatusMessage = "Empty credential enterd";
+                responce.StatusCode = 500;
+                return BadRequest(responce);
             }
-            using (var conn = new OttplatformContext())
+
+            responce = await _authRepository.VerifyUserGenerateTocken(responce, loginUser);
+
+            if(responce.StatusCode == 200)
             {
-                userLoginDetail = await conn.UserLoginDetails.Where(a =>
-                    a.UserName == jWTDetail.UserName &&
-                    a.Password == jWTDetail.Password
-                    ).FirstAsync();
-
-                if (userLoginDetail != null)
-                {
-                    jWTDetail.AccessToken = GetTocken(jWTDetail);
-                    jWTDetail.LoginMessage = "Login Success";
-                    jWTDetail.UserID = userLoginDetail.Id;
-                    return Ok(jWTDetail);
-                }
-                else
-                {
-                    jWTDetail.LoginMessage = "No Data Posted";
-                    return BadRequest(jWTDetail);
-                }
+                return Ok(responce);
             }
-        }
-        private string GetTocken(JWTDetail loginUser)
-        {
-
-            var claims = new[] {
-                        new Claim(JwtRegisteredClaimNames.Sub, _configuration["JWTConfig:Subject"]),
-                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                        new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
-                        new Claim("UserName", loginUser.UserName),
-                        new Claim("UserPassword", loginUser.Password)
-                    };
-
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWTConfig:Key"]));
-            var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var token = new JwtSecurityToken(
-                            _configuration["JWTConfig:Issuer"],
-                            _configuration["JWTConfig:Audience"],
-                            claims,
-                            expires: DateTime.UtcNow.AddMinutes(10),
-                            signingCredentials: signIn);
-
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            else
+            {
+                return BadRequest(responce);
+            }
         }
     }
 }

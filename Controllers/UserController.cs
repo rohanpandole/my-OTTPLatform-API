@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OTTMyPlatform.Models;
+using OTTMyPlatform.Models.Responce;
+using OTTMyPlatform.Repository.Interface;
+using OTTMyPlatform.Repository.Interface.Context;
+using System.Data;
 
 namespace WebApplication1.Controllers
 {
@@ -13,104 +17,84 @@ namespace WebApplication1.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _environment;
-        public UserController(IConfiguration configuration, IWebHostEnvironment environment)
+        private readonly IDBContext _dBContext;
+        private readonly IUserRepository _userRepository;
+        public UserController(IConfiguration configuration, IWebHostEnvironment environment, IDBContext dBContext,IUserRepository userRepository)
         {
             _configuration = configuration;
             _environment = environment;
-
+            _dBContext = dBContext;
+            _userRepository = userRepository;
         }
 
         [HttpGet("GetAllTvShow")]
-        public IEnumerable<Tvshow> GetAllTvShow()
+        public ActionResult<TVShowResponce> GetAllTvShow()
         {
-            using (var context = new OttplatformContext())
+            TVShowResponce responce = new TVShowResponce();
+            responce.Tvshows = _userRepository.GetAllTvShow();
+            if (responce.Tvshows.Count < 0)
             {
-                var data = context.Tvshows.ToList();
-                if(data!=null && data.Count>0)
-                {
-                    foreach (var item in data)
-                    {
-                        item.tvShowImage = GetTVShowImage(item.tvShowImage);
-                    }
-                }
-                else
-                {
-                    return Enumerable.Empty<Tvshow>();
-                }
-                return data;
+                responce.StatusCode = 500;
+                responce.StatusMessage = "No TV show Available";
+                return BadRequest(responce);
             }
+            responce.StatusCode = 200;
+            responce.StatusMessage = "Found TV Shows";
+            return Ok(responce);
+
         }
 
-        [HttpGet("GetTvShowByName")]
-        public async Task<ActionResult<Tvshow>> GetTvShowById(string tvShowName)
+        [HttpGet("SearchTvShowByName")]
+        public ActionResult<TVShowResponce> SearchTvShowByName(string tvShowName)
         {
-            Tvshow tvshow = new Tvshow();
-            using (var context = new OttplatformContext())
+            TVShowResponce responce = new TVShowResponce();
+            if (tvShowName.Length == 0 )
             {
-                var getDataByID = await context.Tvshows.Where(x => x.Title == tvShowName).FirstAsync();
-                if (getDataByID != null)
-                {
-                    tvshow.Description = getDataByID.Description;
-                    tvshow.ShowId = getDataByID.ShowId;
-                    tvshow.Title = getDataByID.Title;
-                    tvshow.tvShowImage = GetTVShowImage(getDataByID.tvShowImage);
-                }
+                responce.StatusCode = 500;
+                responce.StatusMessage = "Enter TV show name";
+                return BadRequest(responce);
             }
-            return tvshow;
+            responce.Tvshows = _userRepository.SerachTVshowByName(tvShowName);
+            responce.StatusCode = 200;
+            responce.StatusMessage = "Found TV Show Search Result";
+            return Ok(responce);
         }
 
         [HttpPost("MarkTvShowById")]
         public async Task<ActionResult> MarkTvShowById(Watched watched)
         {
-            Tvshow tvshow = new Tvshow();
-            UserShowWatchList watchlist = new UserShowWatchList();
-            using (var context = new OttplatformContext())
-            {
-                var getDataByID = await context.Episodes.Where(x => x.ShowId == watched.showId).FirstAsync();
-                if (getDataByID != null)
-                {
-                    watchlist.ShowId = getDataByID.ShowId;
-                    watchlist.EpisodeId = getDataByID.EpisodeId;
-                    watchlist.UserId = watched.UserID;
-                    watchlist.Watched = 1;
+            var IsWatched = await _userRepository.MarkTvShowById(watched);
+            var responce = new { IsWatched = IsWatched };
 
-                }
-                try
-                {
-                    await context.UserShowWatchLists.AddAsync(watchlist);
-                    await context.SaveChangesAsync();
-                }
-                catch (Exception e)
-                {
-                    throw;
-                }
+            if (IsWatched)
+            {
+                return Ok(responce);
             }
-            return Ok();
+            return BadRequest(responce);
         }
 
-
         [HttpGet("GetMyAllWatchedEpisods")]
-        public List<Tvshow> GetMyAllWatchedEpisods(int userId)
+        public ActionResult<TVShowResponce> GetMyAllWatchedEpisods(int userId)
         {
-            List<Tvshow> Tvshows = new List<Tvshow>();
-            Tvshow Tvshow = new Tvshow();
-            using (var context = new OttplatformContext())
+            TVShowResponce responce = new TVShowResponce();
+            responce.Tvshows = _userRepository.GetMyAllWatchedEpisods(userId);
+            if (responce.Tvshows.Count < 0)
             {
-                var watchList = context.UserShowWatchLists.Where(x => x.UserId == userId).ToList();
-                foreach(var data in watchList)
-                {
-                    var showData = context.Tvshows.Where(x => x.ShowId ==  data.ShowId).SingleOrDefault();
-                    showData.tvShowImage = GetTVShowImage(showData.tvShowImage);
-                    Tvshows.Add(showData);
-                }
-                
-                return Tvshows;
+                responce.StatusCode = 500;
+                responce.StatusMessage = "No TV show Watched Yet";
+                return BadRequest(responce);
             }
+            responce.StatusCode = 200;
+            responce.StatusMessage = "Found My Watched TV Shows";
+            return Ok(responce);
+
         }
 
         [HttpGet("GetNextEpisodByTvShowId")]
         public async Task<ActionResult> GetNextEpisodByTvShowId(int showID, int userID)
         {
+            // TODO: Analyse Usage Of This API Then Consume In UI
+
             if (showID == 0 || 0 == userID)
             {
                 return BadRequest();
@@ -165,6 +149,8 @@ namespace WebApplication1.Controllers
         [HttpPut("UpdateMarkCurrentEpisodCompleted")]
         public async Task<ActionResult<Tvshow>> UpdateTvShowById(int showID, int episodID, int userID)
         {
+            // TODO: Analyse Usage Of This API Then Remove In Future
+
             if (showID == 0 || 0 == episodID)
             {
                 return BadRequest();
@@ -185,35 +171,5 @@ namespace WebApplication1.Controllers
                 }
             }
         }
-
-        [NonAction]
-        private string GetImageFolderPath()
-        {
-
-            return this._environment.WebRootPath + "/Uploads/TVShowImages/";
-        }
-
-        [NonAction]
-        private string GetTVShowImage(string tvShowImage)
-        {
-            string imageUrl = string.Empty;
-            string hostUrl = "https://localhost:7005//";
-
-            string imaheFolderPath = GetImageFolderPath();
-            string imagePath = imaheFolderPath + tvShowImage;
-
-            if (!System.IO.File.Exists(imagePath))
-            {
-                imageUrl = hostUrl + "//Uploads//TVShowCommanImage/defaultImage.jpg";
-            }
-            else
-            {
-                imageUrl = hostUrl + "/Uploads/TVShowImages/" + tvShowImage;
-            }
-
-            return imageUrl;
-
-        }
-
     }
 }

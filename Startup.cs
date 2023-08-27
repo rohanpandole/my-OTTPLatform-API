@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OTTMyPlatform.Repository.Interface;
+using OTTMyPlatform.Repository.Interface.Context;
+using OTTMyPlatform.Repository.InterfaceImplementation;
+using OTTMyPlatform.Repository.InterfaceImplementation.ContextImplementation;
 using System.Text;
 
 namespace OTTMyPlatform
@@ -77,6 +81,12 @@ namespace OTTMyPlatform
                     .AllowCredentials();
                 });
             });
+            services.AddTransient<IDBContext,DBContext>();
+            services.AddTransient<IAdminRepository,AdminRepository>();
+            services.AddTransient<IUserRepository,UserRepository>();
+            services.AddTransient<ITVShowImageProcess,TVShowImageProcess>();
+            services.AddTransient<IAuthRepository,AuthRepository>();
+
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
