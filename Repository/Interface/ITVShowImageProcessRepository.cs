@@ -1,6 +1,6 @@
 ﻿namespace OTTMyPlatform.Repository.Interface
 {
-    public interface ITVShowImageProcess
+    public interface ITVShowImageProcessRepository
     {
         Task RemoveTVShowImage(int showId);
         bool UploadeFiles(IFormFileCollection uploadeFile);

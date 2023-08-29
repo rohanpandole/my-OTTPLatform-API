@@ -6,14 +6,14 @@ using OTTMyPlatform.Repository.Interface;
 using OTTMyPlatform.Repository.Interface.Context;
 using System.Data;
 
-namespace OTTMyPlatform.Repository.InterfaceImplementation
+namespace OTTMyPlatform.Repository
 {
     public class AdminRepository : IAdminRepository
     {
         private readonly IConfiguration _configuration;
         private readonly IDBContext _context;
-        private readonly ITVShowImageProcess _processTvShowImage;
-        public AdminRepository(IConfiguration configuration, IDBContext dBContext, ITVShowImageProcess tVShowImageProcess)
+        private readonly ITVShowImageProcessRepository _processTvShowImage;
+        public AdminRepository(IConfiguration configuration, IDBContext dBContext, ITVShowImageProcessRepository tVShowImageProcess)
         {
             _configuration = configuration;
             _context = dBContext;
@@ -26,7 +26,7 @@ namespace OTTMyPlatform.Repository.InterfaceImplementation
             param.Add("@TVShowName", showName, DbType.String);
             string searchTVShow = "SP_SearchTVShow";
             IEnumerable<Tvshow> aa = (IEnumerable<Tvshow>)await _context.DbConnection().QueryAsync(searchTVShow, param, commandType: CommandType.StoredProcedure);
-            
+
             return aa;
         }
         public async Task<bool> DeleteTVshowRecodsById(int showId)
@@ -73,7 +73,7 @@ namespace OTTMyPlatform.Repository.InterfaceImplementation
                     await context.Episodes.AddAsync(episode);
                     await context.SaveChangesAsync();
 
-                 return _processTvShowImage.UploadeFiles(uploadeFile.Files);
+                    return _processTvShowImage.UploadeFiles(uploadeFile.Files);
                 }
             }
 
@@ -97,10 +97,10 @@ namespace OTTMyPlatform.Repository.InterfaceImplementation
                     return isImageUpdated;
                 }
                 catch (SqlException e)
-                    {
-                        throw e;
-                    }
+                {
+                    throw e;
                 }
+            }
         }
     }
 }

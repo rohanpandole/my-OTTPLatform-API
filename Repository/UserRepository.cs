@@ -5,14 +5,14 @@ using OTTMyPlatform.Repository.Interface;
 using OTTMyPlatform.Repository.Interface.Context;
 using System.Data;
 
-namespace OTTMyPlatform.Repository.InterfaceImplementation
+namespace OTTMyPlatform.Repository
 {
     public class UserRepository : IUserRepository
     {
         private readonly IConfiguration _configuration;
         private readonly IDBContext _context;
-        private readonly ITVShowImageProcess _processTvShowImage;
-        public UserRepository(IConfiguration configuration, IDBContext dBContext, ITVShowImageProcess tVShowImageProcess)
+        private readonly ITVShowImageProcessRepository _processTvShowImage;
+        public UserRepository(IConfiguration configuration, IDBContext dBContext, ITVShowImageProcessRepository tVShowImageProcess)
         {
             _configuration = configuration;
             _context = dBContext;
@@ -20,8 +20,7 @@ namespace OTTMyPlatform.Repository.InterfaceImplementation
         }
         public List<Tvshow> SerachTVshowByName(string tvShowName)
         {
-            List<Tvshow>tvshows = new List<Tvshow>();
-            Tvshow tvshow = null;
+            List<Tvshow> tvshows = new List<Tvshow>();
             DynamicParameters param = new DynamicParameters();
 
             param.Add("@TVShowName", tvShowName, DbType.String);
@@ -31,10 +30,12 @@ namespace OTTMyPlatform.Repository.InterfaceImplementation
             {
                 foreach (var item in searchData)
                 {
-                    tvshow = new Tvshow();
-                    tvshow.Title = item.Title;
-                    tvshow.Description = item.Description;
-                    tvshow.tvShowImage = _processTvShowImage.GetTVShowImage(item.tvShowImage);
+                    var tvshow = new Tvshow
+                    {
+                        Title = item.Title,
+                        Description = item.Description,
+                        tvShowImage = _processTvShowImage.GetTVShowImage(item.tvShowImage)
+                    };
                     tvshows.Add(tvshow);
                 }
             }

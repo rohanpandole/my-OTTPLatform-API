@@ -2,9 +2,9 @@
 using OTTMyPlatform.Repository.Interface.Context;
 using System.Data;
 
-namespace OTTMyPlatform.Repository.InterfaceImplementation.ContextImplementation
+namespace OTTMyPlatform.Repository
 {
-    public class DBContext:IDBContext
+    public class DBContext : IDBContext
     {
         private readonly IConfiguration _configuration;
         public DBContext(IConfiguration configuration)

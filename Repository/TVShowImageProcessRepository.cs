@@ -2,14 +2,14 @@
 using OTTMyPlatform.Repository.Interface;
 using OTTMyPlatform.Repository.Interface.Context;
 
-namespace OTTMyPlatform.Repository.InterfaceImplementation
+namespace OTTMyPlatform.Repository
 {
-    public class TVShowImageProcess : ITVShowImageProcess
+    public class TVShowImageProcessRepository : ITVShowImageProcessRepository
     {
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IDBContext _dBContext;
-        public TVShowImageProcess(IConfiguration configuration, IWebHostEnvironment webHostEnvironment, IDBContext dBContext)
+        public TVShowImageProcessRepository(IConfiguration configuration, IWebHostEnvironment webHostEnvironment, IDBContext dBContext)
         {
             _configuration = configuration;
             _webHostEnvironment = webHostEnvironment;
@@ -25,10 +25,10 @@ namespace OTTMyPlatform.Repository.InterfaceImplementation
                 var getData = await context.Tvshows.FindAsync(showId);
                 imagePath = imageFolderPath + getData.tvShowImage;
 
-                if (System.IO.File.Exists(imagePath))
+                if (File.Exists(imagePath))
                 {
                     //if old image is there then it will delete it
-                    System.IO.File.Delete(imagePath);
+                    File.Delete(imagePath);
                 }
             }
         }
@@ -53,20 +53,20 @@ namespace OTTMyPlatform.Repository.InterfaceImplementation
 
             try
             {
-                if (!System.IO.Directory.Exists(fileFolderPath))
+                if (!Directory.Exists(fileFolderPath))
                 {
-                    System.IO.Directory.CreateDirectory(fileFolderPath);
+                    Directory.CreateDirectory(fileFolderPath);
                 }
 
                 string imagePath = fileFolderPath + fileName;
 
-                if (System.IO.File.Exists(imagePath))
+                if (File.Exists(imagePath))
                 {
                     //if old image is there then it will delete it
-                    System.IO.File.Delete(imagePath);
+                    File.Delete(imagePath);
                 }
 
-                using (FileStream stream = System.IO.File.Create(imagePath))
+                using (FileStream stream = File.Create(imagePath))
                 {
                     // it will uploade actual binary data into dummy file
                     source.CopyTo(stream);
@@ -87,7 +87,7 @@ namespace OTTMyPlatform.Repository.InterfaceImplementation
             string imaheFolderPath = GetImageFolderPath();
             string imagePath = imaheFolderPath + tvShowImage;
 
-            if (!System.IO.File.Exists(imagePath))
+            if (!File.Exists(imagePath))
             {
                 imageUrl = hostUrl + "//Uploads//TVShowCommanImage/defaultImage.jpg";
             }

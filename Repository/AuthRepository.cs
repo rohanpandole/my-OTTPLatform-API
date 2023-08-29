@@ -9,7 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using WebApplication1.Models;
 
-namespace OTTMyPlatform.Repository.InterfaceImplementation
+namespace OTTMyPlatform.Repository
 {
     public class AuthRepository : IAuthRepository
     {
@@ -20,7 +20,7 @@ namespace OTTMyPlatform.Repository.InterfaceImplementation
             _configuration = configuration;
             _context = dBContext;
         }
-         public async Task<List<UserLoginDetail>> GetAllUser()
+        public async Task<List<UserLoginDetail>> GetAllUser()
         {
             List<UserLoginDetail> users = new List<UserLoginDetail>();
             using (var conn = new OttplatformContext())
@@ -63,16 +63,16 @@ namespace OTTMyPlatform.Repository.InterfaceImplementation
                         a.Password == loginUser.Password
                         ).FirstAsync();
 
-                        responce.UserJWTDetail.AccessToken = GetTocken(responce.UserJWTDetail);
-                        responce.StatusMessage = "Login Success";
-                        responce.UserJWTDetail.UserID = userLoginDetail.Id;
-                        responce.StatusCode = 200;
-                        return responce;
+                    responce.UserJWTDetail.AccessToken = GetTocken(responce.UserJWTDetail);
+                    responce.StatusMessage = "Login Success";
+                    responce.UserJWTDetail.UserID = userLoginDetail.Id;
+                    responce.StatusCode = 200;
+                    return responce;
                 }
             }
             catch (Exception ex)
             {
-                responce.StatusMessage = "No User Found or "+ex.Message;
+                responce.StatusMessage = "No User Found or " + ex.Message;
                 responce.StatusCode = 500;
                 return responce;
 
