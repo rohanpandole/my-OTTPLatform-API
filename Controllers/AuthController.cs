@@ -65,7 +65,7 @@ namespace WebApplication1.Controllers
 
             responce = await _authRepository.VerifyUserGenerateTocken(responce, loginUser);
 
-            if(responce.StatusCode == 200)
+            if(responce != null && responce.StatusCode == 200)
             {
                 return Ok(responce);
             }
